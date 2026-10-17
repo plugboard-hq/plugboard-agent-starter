@@ -1,6 +1,16 @@
 # Plugboard core API, as an agent sees it
 
-Signatures from `plugboard` core. Only these are part of the contract.
+Signatures from `plugboard` core. Only these are part of the contract. Six groups on the
+Python side, matching the five of the frontend SDK:
+
+| Group | Module | What it answers |
+|---|---|---|
+| manifest | `plugboard` (`AgentManifest`, `register`), `plugboard.skills` (`register_skill`) | How do I plug in? |
+| capabilities | `plugboard.capabilities` | What can I take instead of writing a tool? |
+| providers | `plugboard.providers` | How do I reach a connected system by name? |
+| turn | `plugboard.turn` | How do I talk to the turn I am running in? |
+| widgets | `plugboard.widgets` | What can I put on screen? |
+| artifacts | `plugboard.artifacts` | How do I hand results to other agents? |
 
 ## Manifest
 
@@ -110,11 +120,11 @@ build: { lib: { entry: "src/index.jsx", formats: ["es"], fileName: () => "<name>
          rollupOptions: { external: ["react", "react-dom", "react/jsx-runtime", "react-dom/client", "@plugboard/sdk"] } }
 ```
 
-`@plugboard/sdk` exports: `Pane({ title, subtitle, icon, tabs, tab, onTab, actions, onClose, children })`,
-`TableView({ widget, bare })`, `ChartView({ widget, bare })`, `SqlView({ sql })`, `call(path, init)`,
-`useDataset(conversationUuid, id)`, `useSchema(providerName)`, `useProviders()`,
-`runQuery(conversationUuid, { sql, provider, title, via })`, `refreshConversation()`,
-`openArtifact(conversationUuid, id)`, `prefill(text)`.
+`@plugboard/sdk` in five groups: `ui` (`Pane`, `TableView`, `SqlView`), `theme` (tokens such as
+`theme.ink`, `theme.muted`, `theme.accent`, `theme.line`, `theme.paper`, `theme.surface`, `theme.mono`),
+`conversation` (`useDataset`, `runQuery`, `openArtifact`, `refresh`, `prefill`), `providers`
+(`useList()`, `database(name).useSchema()`), `host` (`call`, `post`, `version`).
+`import { ui, theme, conversation, providers } from "@plugboard/sdk"; const { Pane } = ui;`
 
 Surfaces on the manifest: `{"kind": "artifact", "component": "MyPane", "title": "..."}` renders
 this agent's datasets; `{"kind": "badge", "key": "...", "title": "...", "icon": "database",

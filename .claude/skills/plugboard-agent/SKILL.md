@@ -116,12 +116,13 @@ Optional. Without it, the host renders the agent's datasets in its generic pane
    components to render; for an `artifact` surface ctx also carries `artifact`,
    `dataset`, `conversationUuid`, `agentTitle` and `onClose`. Keep one root per
    element and make `mount` idempotent; the host re-mounts on context changes.
-4. Compose `Pane` from the SDK so the pane matches the shell; use `TableView`,
-   `ChartView`, `SqlView` where they fit; call the host through `call`,
-   `runQuery`, `refreshConversation`, `openArtifact`, `prefill`.
-5. Style with the theme's CSS variables (`var(--color-ink)`, `--color-muted`,
-   `--color-line`, `--color-paper`, `--color-surface`, `--color-accent`,
-   `--font-mono`). The host's Tailwind classes are not compiled for bundles.
+4. Import the SDK by group: `ui` (`Pane`, `TableView`, `SqlView`) so the pane matches
+   the shell; `conversation` (`useDataset`, `runQuery`, `refresh`, `openArtifact`,
+   `prefill`) to act on the conversation; `providers` to reach a connected system by
+   name; `host.call` only when nothing above fits.
+5. Style with `theme` tokens (`theme.ink`, `theme.muted`, `theme.line`, `theme.paper`,
+   `theme.surface`, `theme.accent`, `theme.mono`), never a literal CSS variable. The
+   host's Tailwind classes are not compiled for bundles.
 6. On the manifest: `frontend=str(Path(__file__).parent / "static" / "<name>.js")`
    and `surfaces=[{"kind": "artifact", "component": "<Component>", "title": "..."}]`
    (or `"kind": "badge"` with `"key"` and `"icon"` for a header badge that opens a pane).
