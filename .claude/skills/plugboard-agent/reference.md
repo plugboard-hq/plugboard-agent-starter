@@ -122,8 +122,9 @@ build: { lib: { entry: "src/index.jsx", formats: ["es"], fileName: () => "<name>
 
 `@plugboard/sdk` in five groups: `ui` (`Pane`, `TableView`, `SqlView`), `theme` (tokens such as
 `theme.ink`, `theme.muted`, `theme.accent`, `theme.line`, `theme.paper`, `theme.surface`, `theme.mono`),
-`conversation` (`useDataset`, `runQuery`, `openArtifact`, `refresh`, `prefill`), `providers`
-(`useList()`, `database(name).useSchema()`), `host` (`call`, `post`, `version`).
+`conversation` (`useDataset`, `publishDataset`, `openArtifact`, `refresh`, `prefill`), `providers`
+(`useList()`, `database(name).useSchema()`, `database(name).query(sql)`), `host` (`call`, `post`, `version`).
+A query runs on the provider; keeping its result is a publish on the conversation.
 `import { ui, theme, conversation, providers } from "@plugboard/sdk"; const { Pane } = ui;`
 
 Surfaces on the manifest: `{"kind": "artifact", "component": "MyPane", "title": "..."}` renders
