@@ -74,23 +74,10 @@ QuestionWidget(prompt=, options=[...])   # blocking; use through turn.ask
 ProposalWidget                           # never built directly; see Proposals
 ```
 
-An agent defines its own widget kind when the widget is only a payload for its own pane:
-
-```python
-from typing import Any, Literal
-from plugboard.widgets import Widget
-
-class StayWidget(Widget):
-    kind: Literal["stay"] = "stay"
-    stay: dict[str, Any]
-
-current_turn().show(StayWidget(title="Your stay · AUR-10234", stay=data))
-```
-
-with `{"kind": "widget", "widget_kind": "stay", "key": "stay", "component": "StayPane"}`
-in the manifest's `surfaces`, so the host opens that pane when the widget arrives and the
-pane receives it as `ctx.widget`. Keep these in the package's `widgets.py`. GenBI's
-`ChartWidget` is one (`plugboard_genbi.widgets`); it is not core.
+Widgets are inline items in the thread. An agent adds an inline kind of its own by
+subclassing `plugboard.widgets.Widget` with a `kind` and the fields, drawn by its own
+bundle; GenBI's `ChartWidget` (`plugboard_genbi.widgets`) is one, and it is not core.
+Something that opens in the pane is not a widget but an artifact: see Artifacts.
 
 ## Proposals
 
@@ -104,14 +91,28 @@ in the agent's `proposal` surface or the thread card, `execute()` runs on confir
 outcome comes back to the supervisor as an event message. Use it for anything that costs
 money or cannot be undone.
 
-## Datasets
+## Artifacts
+
+A thing the agent produced that has an id and opens in the pane. A dataset:
 
 ```python
 from plugboard.artifacts import Dataset
 Dataset(title=, columns=[...], rows=[[...]], sql="", created_by="<agent name>")
+current_turn().artifacts.publish(dataset)   # then show it with a TableWidget(dataset_id=...)
 ```
 
 Publish the full rows; the UI shows a capped view and other agents fetch by id.
+
+Anything of the agent's own kind, as one record:
+
+```python
+current_turn().publish("stay", "Your stay · AUR-10234", payload)   # -> "st_1"
+```
+
+The thread shows it as a chip, the pane opens on it, and the agent's manifest names the
+component that draws it: `{"kind": "artifact", "when": "stay", "component": "StayPane",
+"title": "Your stay"}` in `surfaces`; the pane receives the payload as `ctx.record`. Without
+such a surface the host shows the fields.
 
 ## Providers
 

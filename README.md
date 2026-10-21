@@ -58,8 +58,7 @@ pyproject.toml                 the package, hatchling, no dependency on plugboar
 plugboard_<name>/
   __init__.py                  register(AgentManifest(...)): the manifest, and nothing else at import
   tools.py                     the tools, one function each, built by make_tools() once per turn
-  widgets.py                   optional: the agent's own widget kinds, when its pane draws
-                               something the host has no widget for (see below)
+  widgets.py                   optional: the agent's own inline widget kinds (GenBI's chart)
   data/                        optional: fixtures the agent ships (a seed script, a sqlite file)
   static/<name>.js             optional: the built pane, committed, named by the manifest's frontend
 frontend/                      optional: the pane's source and its Vite library build
@@ -72,14 +71,16 @@ README.md                      what the agent answers, its example prompts, how 
 A skill agent is one file instead: `SKILL.md` at the repository root, frontmatter for the
 manifest fields and the body as the persona. See `skill-agent-example/`.
 
-**Widget kinds.** Core owns the widgets the host does something with: a table it renders, a
-question it waits on, a proposal it holds until the person decides. An agent defines a
-widget kind of its own only when the widget is a payload for the agent's own pane and the
-host does nothing with it but route it there. Subclass `plugboard.widgets.Widget` with a
-`kind` and the fields, and declare a `widget` surface for that kind on the manifest. GenBI's
-`ChartWidget` and the hotel's `StayWidget` are the two examples. A checkout is not one: it
-is a core proposal, created through `plugboard.proposals.propose`, with the hotel's pane
-declared as the `proposal` surface that draws it.
+**Widgets and artifacts.** A widget is an inline item in the thread: a table, a chart, a
+question, a proposal card. Core owns the ones the host acts on (a table it renders, a
+question it waits on, a proposal it holds until the person decides); an agent adds an
+inline kind of its own by subclassing `plugboard.widgets.Widget`, as GenBI does for its
+chart. An artifact is a thing the agent produced that opens in the pane and has an id: a
+dataset, or anything of the agent's own kind published with `turn.publish(kind, title,
+payload)`, as the hotel does for a stay. The thread shows an artifact as a chip, the pane
+opens on it, and an `artifact` surface with `when: "<kind>"` names the component that draws
+it. A checkout is neither: it is a core proposal, created through
+`plugboard.proposals.propose`, with the hotel's pane declared as the `proposal` surface.
 
 ## Make it yours
 
@@ -114,7 +115,8 @@ The host exposes `@plugboard/sdk` and an import map that points `react`, `react-
 with those as externals: one ESM file the host serves and mounts through `mount(el, ctx)`
 and `unmount(el)`. `ctx.component` names which component to render; every ctx carries
 `conversationUuid`, `agentTitle` and `onClose`, and the surface kind adds its subject: the
-artifact id for `artifact`, `widget` for `widget`, `proposal` and `onDecide` for `proposal`. Compose `Pane`, `TableView` and `SqlView` from the SDK so the pane sits in the
+`artifact` (with `dataset` rows or the published `record`) for `artifact`, `proposal` and
+`onDecide` for `proposal`. Compose `Pane`, `TableView` and `SqlView` from the SDK so the pane sits in the
 shell like the host's own, and style with the theme's CSS variables (`--color-ink`,
 `--color-muted`, `--color-line`, `--color-paper`, `--color-surface`, `--color-accent`,
 `--font-mono`); the host's Tailwind classes are not compiled for bundles.
@@ -122,9 +124,9 @@ shell like the host's own, and style with the theme's CSS variables (`--color-in
 On the manifest, `surfaces` say what the pane renders: `{"kind": "artifact", "component":
 "StarterPane"}` takes over the pane for this agent's datasets (add `"when": "sql"` to apply
 to any dataset that carries SQL); `{"kind": "badge", "key": "...", "icon": "...", "title":
-"..."}` adds a header badge that opens a pane; `{"kind": "widget", "widget_kind": "...",
-"key": "...", "component": "...", "title": "..."}` opens the pane when the agent shows a
-widget of that kind; `{"kind": "proposal", "key": "...", "component": "...", "title": "..."}`
+"..."}` adds a header badge that opens a pane; `{"kind": "artifact", "when": "<kind>",
+"component": "...", "title": "..."}` draws the artifacts of the agent's own kind it
+publishes with `turn.publish`; `{"kind": "proposal", "key": "...", "component": "...", "title": "..."}`
 draws the agent's proposals and takes the person's decision.
 
 The SDK's exports and the exact core signatures are in
