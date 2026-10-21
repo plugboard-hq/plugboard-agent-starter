@@ -48,6 +48,39 @@ on every path including failure, and a plain-text return. Show results with widg
 publish rows as datasets so other agents can use them by id. Expected failures are
 returned as text, never raised.
 
+## Layout
+
+What a package agent's repository holds. Two files are the agent; the rest is there when
+the agent needs it.
+
+```
+pyproject.toml                 the package, hatchling, no dependency on plugboard (the host provides it)
+plugboard_<name>/
+  __init__.py                  register(AgentManifest(...)): the manifest, and nothing else at import
+  tools.py                     the tools, one function each, built by make_tools() once per turn
+  widgets.py                   optional: the agent's own widget kinds, when its pane draws
+                               something the host has no widget for (see below)
+  data/                        optional: fixtures the agent ships (a seed script, a sqlite file)
+  static/<name>.js             optional: the built pane, committed, named by the manifest's frontend
+frontend/                      optional: the pane's source and its Vite library build
+  vite.config.js               one ESM entry, react and @plugboard/sdk as externals, output to static/
+  src/index.jsx                mount(el, ctx) / unmount(el), and the component map
+  src/<Name>Pane.jsx           one component per surface on the manifest
+README.md                      what the agent answers, its example prompts, how to install it
+```
+
+A skill agent is one file instead: `SKILL.md` at the repository root, frontmatter for the
+manifest fields and the body as the persona. See `skill-agent-example/`.
+
+**Widget kinds.** Core owns the widgets the host does something with: a table it renders, a
+question it waits on, a proposal it holds until the person decides. An agent defines a
+widget kind of its own only when the widget is a payload for the agent's own pane and the
+host does nothing with it but route it there. Subclass `plugboard.widgets.Widget` with a
+`kind` and the fields, and declare a `widget` surface for that kind on the manifest. GenBI's
+`ChartWidget` and the hotel's `StayWidget` are the two examples. A checkout is not one: it
+is a core proposal, created through `plugboard.proposals.propose`, with the hotel's pane
+declared as the `proposal` surface that draws it.
+
 ## Make it yours
 
 1. Rename. `starter` appears in `pyproject.toml`, the package directory
@@ -79,9 +112,9 @@ returned as text, never raised.
 The host exposes `@plugboard/sdk` and an import map that points `react`, `react-dom` and
 `@plugboard/sdk` at the host's own instances, so `frontend/` is a small Vite library build
 with those as externals: one ESM file the host serves and mounts through `mount(el, ctx)`
-and `unmount(el)`. `ctx.component` names which component to render; for an `artifact`
-surface ctx also carries `artifact`, `dataset`, `conversationUuid`, `agentTitle` and
-`onClose`. Compose `Pane`, `TableView` and `SqlView` from the SDK so the pane sits in the
+and `unmount(el)`. `ctx.component` names which component to render; every ctx carries
+`conversationUuid`, `agentTitle` and `onClose`, and the surface kind adds its subject: the
+artifact id for `artifact`, `widget` for `widget`, `proposal` and `onDecide` for `proposal`. Compose `Pane`, `TableView` and `SqlView` from the SDK so the pane sits in the
 shell like the host's own, and style with the theme's CSS variables (`--color-ink`,
 `--color-muted`, `--color-line`, `--color-paper`, `--color-surface`, `--color-accent`,
 `--font-mono`); the host's Tailwind classes are not compiled for bundles.
@@ -89,7 +122,10 @@ shell like the host's own, and style with the theme's CSS variables (`--color-in
 On the manifest, `surfaces` say what the pane renders: `{"kind": "artifact", "component":
 "StarterPane"}` takes over the pane for this agent's datasets (add `"when": "sql"` to apply
 to any dataset that carries SQL); `{"kind": "badge", "key": "...", "icon": "...", "title":
-"..."}` adds a header badge that opens a pane.
+"..."}` adds a header badge that opens a pane; `{"kind": "widget", "widget_kind": "...",
+"key": "...", "component": "...", "title": "..."}` opens the pane when the agent shows a
+widget of that kind; `{"kind": "proposal", "key": "...", "component": "...", "title": "..."}`
+draws the agent's proposals and takes the person's decision.
 
 The SDK's exports and the exact core signatures are in
 [plugboard-sdk](https://github.com/plugboard-hq/plugboard-sdk).

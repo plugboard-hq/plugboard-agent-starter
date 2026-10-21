@@ -65,13 +65,44 @@ turn.artifacts.get("ds_1") -> Dataset | None
 
 ## Widgets
 
+Core owns the widgets the host acts on:
+
 ```python
-from plugboard.widgets import TableWidget, ChartWidget, QuestionWidget
+from plugboard.widgets import TableWidget, QuestionWidget, ProposalWidget
 TableWidget(title=, columns=[...], rows=[[...]], total_rows=, dataset_id=, sql=)
-ChartWidget(title=, chart_type="bar"|"hbar"|"line"|"pie", categories=[...],
-            series=[{"name": str, "values": [...]}], x_label=, y_label=, dataset_id=)
 QuestionWidget(prompt=, options=[...])   # blocking; use through turn.ask
+ProposalWidget                           # never built directly; see Proposals
 ```
+
+An agent defines its own widget kind when the widget is only a payload for its own pane:
+
+```python
+from typing import Any, Literal
+from plugboard.widgets import Widget
+
+class StayWidget(Widget):
+    kind: Literal["stay"] = "stay"
+    stay: dict[str, Any]
+
+current_turn().show(StayWidget(title="Your stay · AUR-10234", stay=data))
+```
+
+with `{"kind": "widget", "widget_kind": "stay", "key": "stay", "component": "StayPane"}`
+in the manifest's `surfaces`, so the host opens that pane when the widget arrives and the
+pane receives it as `ctx.widget`. Keep these in the package's `widgets.py`. GenBI's
+`ChartWidget` is one (`plugboard_genbi.widgets`); it is not core.
+
+## Proposals
+
+```python
+from plugboard.proposals import propose
+propose(prompt=, execute=, lines=[...], amount=, card=, confirm_label=, cancel_label=, title=)
+```
+
+Non-blocking: the turn ends, the host holds the proposal, the person confirms or declines
+in the agent's `proposal` surface or the thread card, `execute()` runs on confirm, and the
+outcome comes back to the supervisor as an event message. Use it for anything that costs
+money or cannot be undone.
 
 ## Datasets
 
