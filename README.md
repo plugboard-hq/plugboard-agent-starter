@@ -99,7 +99,7 @@ it. A checkout is neither: it is a core proposal, created through
    Delete `frontend/` and the `frontend`/`surfaces` lines on the manifest if you do not.
 5. Install into a host and try every example prompt:
    ```
-   cd plugboard-demo                                   # or your own instance
+   cd plugboard-demo-airport-parking                                   # or your own instance
    uv add ../plugboard-<name>                          # or git+https://github.com/<org>/plugboard-<name>
    echo 'PLUGBOARD_EXTRA_AGENTS=plugboard_<name>' >> .env
    uv run plugboard run
