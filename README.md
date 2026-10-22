@@ -99,11 +99,11 @@ it. A checkout is neither: it is a core proposal, created through
    Delete `frontend/` and the `frontend`/`surfaces` lines on the manifest if you do not.
 5. Install into a host and try every example prompt:
    ```
-   cd plugboard
-   uv add --group agents ../plugboard-<name>          # or git+https://github.com/<org>/plugboard-<name>
+   cd plugboard-demo                                   # or your own instance
+   uv add ../plugboard-<name>                          # or git+https://github.com/<org>/plugboard-<name>
    echo 'PLUGBOARD_EXTRA_AGENTS=plugboard_<name>' >> .env
-   uv run uvicorn project.asgi:application --port 8010
-   uv run python tests/stream_smoke.py "<first example prompt>"
+   uv run plugboard run
+   uv run python ../plugboard/tests/stream_smoke.py "<first example prompt>"
    ```
    A skill agent instead: `echo 'PLUGBOARD_EXTRA_SKILLS=../plugboard-<name>' >> .env`, with
    `SKILL.md` at the repository root.

@@ -5,6 +5,14 @@ description = "Starter agent for Plugboard."
 requires-python = ">=3.12"
 dependencies = []
 
+# Plugboard itself, for tests and type checks; the instance that installs this agent
+# provides it at runtime.
+[dependency-groups]
+dev = ["plugboard-ai"]
+
+[tool.uv.sources]
+plugboard-ai = { git = "https://github.com/plugboard-hq/plugboard" }
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
